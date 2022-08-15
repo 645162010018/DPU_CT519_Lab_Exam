@@ -1,0 +1,55 @@
+version: '3.9'
+services:
+  sv_web_exam:
+    container_name: web_exap
+    build:
+      context: ./
+      dockerfile: dockerfile-php
+    depends_on:
+      - sv_db_exam
+    restart: always
+    volumes:
+           - ./App_A/:/var/www/html
+    ports:
+        - '80:80'
+    networks:
+       vpcbr:
+         ipv4_address: 10.1.100.11
+
+  sv_db_exam:
+    image: mysql:5.6
+    volumes:
+    - ./App_A/mysql-backup/0018_Lab_Exam.sql:/docker-entrypoint-initdb.d/0018_Lab_Exam.sql:ro
+    container_name: db_exam
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mp@dmin12
+      MYSQL_DATABASE: 0018_Lab_Exam
+      MYSQL_USER: MP
+      MYSQL_PASSWORD: Mp@dmin12
+    ports:
+      - '3306:3306'
+    networks:
+       vpcbr:
+         ipv4_address: 10.1.100.22
+  sv_go_exam1:
+    container_name: go_exap1
+    image: golang:1.8-alpine
+    restart: always
+    volumes:
+           - ./App_B/:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: sleep 7200
+    ports:
+      - '8090:8090'
+    networks:
+       vpcbr:
+         ipv4_address: 10.1.101.12
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.100.0/24
+          gateway: 10.1.100.1
